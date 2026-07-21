@@ -7,19 +7,20 @@ import styles from "./login.module.css";
 
 const roles = [
   {
-    id: "Design Lead",
-    title: "Design Lead",
-    email: "designlead@123.com",
-    description: "Risk heatmap, block attention",
-    icon: "🔎",
-  },
-  {
     id: "PnR Engineer",
     title: "PnR Engineer",
     email: "pnrengineer@123.com",
     description: "Experiment runs, timing detail",
     icon: "⚙️",
   },
+  {
+    id: "Design Lead",
+    title: "Design Lead",
+    email: "designlead@123.com",
+    description: "Risk heatmap, block attention",
+    icon: "🔎",
+  },
+  
   {
     id: "PM / Chip Lead",
     title: "PM / Chip Lead",
@@ -47,7 +48,7 @@ export default function Home() {
 
     setLoginError("");
     router.push(
-      `/dashboard?user=${encodeURIComponent(enteredEmail)}&role=${encodeURIComponent("Design Lead")}`
+      `/dashboard?user=${encodeURIComponent(enteredEmail)}&role=${encodeURIComponent(selectedRole)}`
     );
   };
 
@@ -110,7 +111,7 @@ export default function Home() {
               <div className={styles.roleGrid}>
                 {roles.map((role) => {
                   const isSelected = selectedRole === role.id;
-                  const isDisabled = role.id !== "Design Lead";
+                  const isDisabled = role.id === "PM / Chip Lead";
                   return (
                     <button
                       key={role.id}
