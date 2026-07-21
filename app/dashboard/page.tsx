@@ -2,33 +2,52 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect, useRef } from "react";
 import styles from "./dashboard.module.css";
+import Loading from "./Loading";
+import EmptyState from "./EmptyState";
+import PnREngineerSynthesis from "./pnr-engineer/PnREngineerSynthesis";
 
 const designLeadBlocks = [
-  { block: "erc", exp: "xp15", date: "Jan20 2026", risk: 29, red: 9, amber: 2, green: 4, wns: 2640, gbc: 880, lvs: 250, ppa: 1290 },
-  { block: "camfd", exp: "xp11", date: "Feb06 2026", risk: 28, red: 9, amber: 1, green: 5, wns: 4313, gbc: 925, lvs: 280, ppa: 2162 },
-  { block: "csr", exp: "xp11", date: "Feb05 2026", risk: 27, red: 8, amber: 3, green: 5, wns: 730, gbc: 750, lvs: 215, ppa: 476 },
-  { block: "poqd", exp: "xp11", date: "Jan27 2026", risk: 27, red: 8, amber: 3, green: 4, wns: 2154, gbc: 850, lvs: 188, ppa: 1652 },
-  { block: "elc", exp: "ry16", date: "Jan26 2026", risk: 25, red: 7, amber: 4, green: 4, wns: 956, gbc: 750, lvs: 150, ppa: 1234 },
-  { block: "doc", exp: "ry16", date: "Feb02 2026", risk: 23, red: 6, amber: 5, green: 4, wns: 1780, gbc: 900, lvs: 151, ppa: 1577 },
-  { block: "debug", exp: "xp14", date: "Jan27 2026", risk: 22, red: 6, amber: 4, green: 5, wns: 666, gbc: 777, lvs: 186, ppa: 1428 },
-  { block: "pdmif", exp: "xp14", date: "Jan29 2026", risk: 22, red: 6, amber: 4, green: 5, wns: 2800, gbc: 1000, lvs: 175, ppa: 2894 },
-  { block: "raip", exp: "ry01", date: "Feb02 2026", risk: 20, red: 5, amber: 5, green: 5, wns: 514, gbc: 750, lvs: 59, ppa: 1655 },
-  { block: "iwdt", exp: "xp14", date: "Feb04 2026", risk: 20, red: 5, amber: 5, green: 5, wns: 627, gbc: 775, lvs: 64, ppa: 1787 },
-  { block: "timer", exp: "ry12", date: "Feb02 2026", risk: 18, red: 5, amber: 3, green: 7, wns: 384, gbc: 650, lvs: 100, ppa: 940 },
-  { block: "tfu", exp: "ry01", date: "Feb03 2026", risk: 17, red: 4, amber: 5, green: 6, wns: 716, gbc: 650, lvs: 68, ppa: 1811 },
-  { block: "ached", exp: "xp17", date: "Feb05 2026", risk: 17, red: 5, amber: 2, green: 6, wns: 1164, gbc: 2200, lvs: 65, ppa: 1890 },
-  { block: "cpu", exp: "try16", date: "Jan29 2026", risk: 16, red: 4, amber: 4, green: 7, wns: 321, gbc: 625, lvs: 115, ppa: 1811 },
-  { block: "dmadtc", exp: "xp12", date: "Feb04 2026", risk: 15, red: 4, amber: 3, green: 8, wns: 390, gbc: 800, lvs: 46, ppa: 1533 },
-  { block: "dmac", exp: "xp15", date: "Jan29 2026", risk: 11, red: 3, amber: 2, green: 10, wns: 180, gbc: 650, lvs: 25, ppa: 1781 },
-  { block: "usbfs", exp: "ry12", date: "Jan27 2026", risk: 11, red: 3, amber: 2, green: 10, wns: 370, gbc: 625, lvs: 18, ppa: 1940 },
-  { block: "wdt", exp: "ry12", date: "Feb03 2026", risk: 10, red: 3, amber: 1, green: 11, wns: 242, gbc: 600, lvs: 20, ppa: 1858 },
-  { block: "rtc", exp: "xp12", date: "Jan26 2026", risk: 10, red: 3, amber: 1, green: 11, wns: 292, gbc: 650, lvs: 19, ppa: 1919 },
-  { block: "elic", exp: "ry01", date: "Jan26 2026", risk: 7, red: 1, amber: 4, green: 10, wns: 185, gbc: 680, lvs: 31, ppa: 1487 },
+  { block: "erc", exp: "xp15", date: "Jan20 2026", risk: 29, red: 9, amber: 2, green: 4, wns: 2640, drc: 880, lvs: 250, ppa: 1290 },
+  { block: "camfd", exp: "xp11", date: "Feb06 2026", risk: 28, red: 9, amber: 1, green: 5, wns: 4313, drc: 925, lvs: 280, ppa: 2162 },
+  { block: "csr", exp: "xp11", date: "Feb05 2026", risk: 27, red: 8, amber: 3, green: 5, wns: 730, drc: 750, lvs: 215, ppa: 476 },
+  { block: "poqd", exp: "xp11", date: "Jan27 2026", risk: 27, red: 8, amber: 3, green: 4, wns: 2154, drc: 850, lvs: 188, ppa: 1652 },
+  { block: "elc", exp: "ry16", date: "Jan26 2026", risk: 25, red: 7, amber: 4, green: 4, wns: 956, drc: 750, lvs: 150, ppa: 1234 },
+  { block: "doc", exp: "ry16", date: "Feb02 2026", risk: 23, red: 6, amber: 5, green: 4, wns: 1780, drc: 900, lvs: 151, ppa: 1577 },
+  { block: "debug", exp: "xp14", date: "Jan27 2026", risk: 22, red: 6, amber: 4, green: 5, wns: 666, drc: 777, lvs: 186, ppa: 1428 },
+  { block: "pdmif", exp: "xp14", date: "Jan29 2026", risk: 22, red: 6, amber: 4, green: 5, wns: 2800, drc: 1000, lvs: 175, ppa: 2894 },
+  { block: "raip", exp: "ry01", date: "Feb02 2026", risk: 20, red: 5, amber: 5, green: 5, wns: 514, drc: 750, lvs: 59, ppa: 1655 },
+  { block: "iwdt", exp: "xp14", date: "Feb04 2026", risk: 20, red: 5, amber: 5, green: 5, wns: 627, drc: 775, lvs: 64, ppa: 1787 },
+  { block: "timer", exp: "ry12", date: "Feb02 2026", risk: 18, red: 5, amber: 3, green: 7, wns: 384, drc: 650, lvs: 100, ppa: 940 },
+  { block: "tfu", exp: "ry01", date: "Feb03 2026", risk: 17, red: 4, amber: 5, green: 6, wns: 716, drc: 650, lvs: 68, ppa: 1811 },
+  { block: "ached", exp: "xp17", date: "Feb05 2026", risk: 17, red: 5, amber: 2, green: 6, wns: 1164, drc: 2200, lvs: 65, ppa: 1890 },
+  { block: "cpu", exp: "try16", date: "Jan29 2026", risk: 16, red: 4, amber: 4, green: 7, wns: 321, drc: 625, lvs: 115, ppa: 1811 },
+  { block: "dmadtc", exp: "xp12", date: "Feb04 2026", risk: 15, red: 4, amber: 3, green: 8, wns: 390, drc: 800, lvs: 46, ppa: 1533 },
+  { block: "dmac", exp: "xp15", date: "Jan29 2026", risk: 11, red: 3, amber: 2, green: 10, wns: 180, drc: 650, lvs: 25, ppa: 1781 },
+  { block: "usbfs", exp: "ry12", date: "Jan27 2026", risk: 11, red: 3, amber: 2, green: 10, wns: 370, drc: 625, lvs: 18, ppa: 1940 },
+  { block: "wdt", exp: "ry12", date: "Feb03 2026", risk: 10, red: 3, amber: 1, green: 11, wns: 242, drc: 600, lvs: 20, ppa: 1858 },
+  { block: "rtc", exp: "xp12", date: "Jan26 2026", risk: 10, red: 3, amber: 1, green: 11, wns: 292, drc: 650, lvs: 19, ppa: 1919 },
+  { block: "elic", exp: "ry01", date: "Jan26 2026", risk: 7, red: 1, amber: 4, green: 10, wns: 185, drc: 680, lvs: 31, ppa: 1487 },
 ];
 
-const roleDataMap = {
+type MetricCard = {
+  label: string;
+  value: string;
+  description?: string;
+  color: string;
+};
+
+type RoleData = {
+  title: string;
+  summary: string;
+  stats: { label: string; value: string }[];
+  highlights: string[];
+  blocks?: typeof designLeadBlocks;
+  metrics?: MetricCard[];
+};
+
+const roleDataMap: Record<"Design Lead" | "PnR Engineer" | "PM / Chip Lead", RoleData> = {
   "Design Lead": {
     title: "Design Lead",
     summary: "View the latest risk heatmap, assess block attention, and prioritize high-impact design issues.",
@@ -44,14 +63,14 @@ const roleDataMap = {
     ],
     blocks: designLeadBlocks,
     metrics: [
-      { label: "BLOCKS", value: "20", color: "#6b7280" },
-      { label: "GREEN", value: "20", color: "#10b981" },
-      { label: "AMBER", value: "0", color: "#f59e0b" },
-      { label: "RED", value: "0", color: "#ef4444" },
-      { label: "WORST WNS", value: "105", color: "#3b82f6" },
-      { label: "TOTAL GBC", value: "16,407", color: "#f97316" },
-      { label: "TOTAL LYS", value: "2,085", color: "#eab308" },
-      { label: "LAST UPDATED", value: "Feb 04 2026 - 18:42 JST", color: "#7c3aed" },
+      { label: "FLOW PROGRESS", value: "63%", description: "26/41 steps done", color: "#2563eb" },
+      { label: "PASS", value: "23", description: "gatekeeper green", color: "#10b981" },
+      { label: "WARN", value: "2", description: "gatekeeper yellow", color: "#f59e0b" },
+      { label: "FAIL", value: "1", description: "gatekeeper red", color: "#ef4444" },
+      { label: "EXECUTION", value: "3", description: "running now", color: "#7c3aed" },
+      { label: "NOT YET", value: "12", description: "11 pending · 1 skip", color: "#475569" },
+      { label: "SYS/DAT ERRORS", value: "1", description: "across all steps", color: "#f97316" },
+      { label: "WARNINGS", value: "312", description: "across all steps", color: "#8b5cf6" },
     ],
   },
   "PnR Engineer": {
@@ -85,6 +104,17 @@ const roleDataMap = {
     blocks: undefined,
   },
 };
+
+const universalMetrics = [
+  { label: "FLOW PROGRESS", value: "63%", description: "26/41 steps done", color: "#2563eb" },
+  { label: "PASS", value: "23", description: "gatekeeper green", color: "#10b981" },
+  { label: "WARN", value: "2", description: "gatekeeper yellow", color: "#f59e0b" },
+  { label: "FAIL", value: "1", description: "gatekeeper red", color: "#ef4444" },
+  { label: "EXECUTION", value: "3", description: "running now", color: "#7c3aed" },
+  { label: "NOT YET", value: "12", description: "11 pending · 1 skip", color: "#475569" },
+  { label: "SYS/DAT ERRORS", value: "1", description: "across all steps", color: "#f97316" },
+  { label: "WARNINGS", value: "312", description: "across all steps", color: "#8b5cf6" },
+];
 
 const topLevelSections = [
   {
@@ -288,29 +318,108 @@ function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const user = searchParams?.get("user") || "Guest User";
-  const role = "Design Lead";
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<string>("Project");
-  const levelTabs = ["Project", "Block level", "Top level"];
+  // Temporarily hide non-project levels
+  const levelTabs = ["Project"];
+  // const levelTabs = ["Project", "Block level", "Top level"];
   const initials = getInitials(user);
 
-  const roleTabs = ["Design Lead", "PnR Engineer", "PM / Chip Lead"];
-  const [selectedTab, setSelectedTab] = useState<string>("Design Lead");
-  const [blockSearch, setBlockSearch] = useState<string>("");
-  const [activeSearch, setActiveSearch] = useState<string>("");
+  const roleTabs = ["PM / Chip Lead", "Design Lead", "PnR Engineer"] as const;
+  type RoleTab = (typeof roleTabs)[number];
+  const initialRole = (searchParams?.get("role") === "PnR Engineer" || searchParams?.get("role") === "Design Lead"
+    ? searchParams.get("role")
+    : "Design Lead") as RoleTab;
+  const [selectedTab, setSelectedTab] = useState<RoleTab>(initialRole);
+  const initialNavTab = initialRole === "PnR Engineer" ? "Synthesis" : "Summary";
+  const [selectedNavTab, setSelectedNavTab] = useState<"Summary" | "DFT" | "Synthesis" | "PnR" | "Timing" | "Power" | "Sign-off">(initialNavTab);
+  const [pnrEngineerTab, setPnrEngineerTab] = useState<"Result" | "Matrix">("Result");
+  const navTabs = ["Summary", "DFT", "Synthesis", "PnR", "Timing", "Power", "Sign-off"] as const;
+  const [designLeadSearchInput, setDesignLeadSearchInput] = useState<string>("");
+  const [designLeadSearchTerm, setDesignLeadSearchTerm] = useState<string>("");
+  const [pnrResultSearchInput, setPnrResultSearchInput] = useState<string>("");
+  const [pnrResultSearchTerm, setPnrResultSearchTerm] = useState<string>("");
+  const [pnrMatrixSearchInput, setPnrMatrixSearchInput] = useState<string>("");
+  const [pnrMatrixSearchTerm, setPnrMatrixSearchTerm] = useState<string>("");
+  // Keep Design Lead and PNR searches independent from each other.
 
-  const roleData = roleDataMap["Design Lead"];
-  const isDesignLeadTab = true;
-  const designLeadData = roleData as typeof roleDataMap["Design Lead"];
-  const normalizedSearch = activeSearch.trim().toLowerCase();
+  const role = selectedTab;
+  const roleData = roleDataMap[selectedTab] as RoleData;
+  const isDesignLeadTab = selectedTab === "Design Lead";
+  const designLeadData = roleData as { blocks?: typeof designLeadBlocks };
+  const normalizedDesignLeadSearch = designLeadSearchTerm.trim().toLowerCase();
   const filteredBlocks = Array.isArray(designLeadData.blocks)
-    ? designLeadData.blocks.filter((blockData) => blockData.block.toLowerCase().includes(normalizedSearch))
+    ? designLeadData.blocks.filter((blockData) => blockData.block.toLowerCase().includes(normalizedDesignLeadSearch))
     : [];
+  const metrics: MetricCard[] = roleData.metrics ?? universalMetrics;
   const showProjectTable = selectedLevel === "Project" && isDesignLeadTab && Array.isArray(designLeadData.blocks);
 
+  // Format block names for consistent display in the table.
+  const formatBlockName = (blockName: string) => blockName.toUpperCase();
+
+  const [selectedCellInfo, setSelectedCellInfo] = useState<{
+    block: string;
+    exp: string;
+    date: string;
+    column: string;
+    value: string | number;
+    filePath: string;
+    details: Array<{ label: string; value: string | number }>;
+  } | null>(null);
+  const [isPanelExpanded, setIsPanelExpanded] = useState(false);
+
+  // Open the details panel with the selected cell metadata.
+  const handleCellClick = (
+    blockData: (typeof designLeadBlocks)[number],
+    column: string,
+    value: string | number
+  ) => {
+    const sanitizedColumn = column.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    const filePath = `/eda/runs/${blockData.exp}/${blockData.block}/${sanitizedColumn}.rpt`;
+
+    setSelectedCellInfo({
+      block: blockData.block,
+      exp: blockData.exp,
+      date: blockData.date,
+      column,
+      value,
+      filePath,
+      details: [
+        { label: "Risk score", value: blockData.risk },
+        { label: "Red issues", value: blockData.red },
+        { label: "Amber issues", value: blockData.amber },
+        { label: "Green issues", value: blockData.green },
+        { label: "PPA", value: blockData.ppa },
+      ],
+    });
+    setIsPanelExpanded(false);
+  };
+
+  // Toggle and close the expandable details panel.
+  const handlePanelToggle = () => setIsPanelExpanded((current) => !current);
+  const closeDetailPanel = () => {
+    setSelectedCellInfo(null);
+    setIsPanelExpanded(false);
+  };
+
+  // Return the user to the sign-in screen.
   const handleSignOut = () => {
     router.push("/");
   };
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (!userMenuRef.current) return;
+      const target = e.target as Node;
+      if (isUserMenuOpen && userMenuRef.current && !userMenuRef.current.contains(target)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isUserMenuOpen]);
 
   return (
     <div className={styles.dashboardPage}>
@@ -334,8 +443,30 @@ function DashboardContent() {
         </div>
 
         <div className={styles.dashboardHeaderActions}>
-          <span className={styles.loggedInText}>Logged in as {role}</span>
-          <div className={styles.userMenuWrapper}>
+          <div className={`${styles.tabButtons} ${styles.headerRoleTabs}`}>
+            {roleTabs.map((tabRole) => {
+              const enabledRoles = ["Design Lead", "PnR Engineer"];
+              const isDisabled = !enabledRoles.includes(tabRole);
+              return (
+                <button
+                  key={tabRole}
+                  type="button"
+                  disabled={isDisabled}
+                  onClick={() => {
+                    if (isDisabled) return;
+                    setSelectedTab(tabRole);
+                    if (tabRole === "PnR Engineer") {
+                      setSelectedNavTab("Synthesis");
+                    }
+                  }}
+                  className={`${styles.tabButton} ${selectedTab === tabRole ? styles.tabButtonActive : ""} ${isDisabled ? styles.tabButtonDisabled : ""}`}
+                >
+                  {tabRole}
+                </button>
+              );
+            })}
+          </div>
+          <div className={styles.userMenuWrapper} ref={userMenuRef}>
             <button
               type="button"
               className={styles.userAvatarButton}
@@ -347,6 +478,7 @@ function DashboardContent() {
             </button>
             {isUserMenuOpen && (
               <div className={styles.userMenu}>
+                <span className={styles.loggedInText}>Logged in as {role}</span>
                 <div className={styles.userMenuEmail}>{user}</div>
                 <button type="button" onClick={handleSignOut} className={styles.userMenuSignout}>
                   Sign out
@@ -357,156 +489,365 @@ function DashboardContent() {
         </div>
       </header>
 
-      <main className={styles.mainContent}>
-        <div className={styles.tabContainer}>
-          <div className={styles.tabButtons}>
-            {roleTabs.map((tabRole) => {
-              const isDisabled = tabRole !== "Design Lead";
+      <nav className={styles.dashboardNav} aria-label="Dashboard navigation tabs">
+        <div className={styles.dashboardNavInner}>
+          <div className={styles.navTabs}>
+            {navTabs.map((tab) => {
+              const isDisabled = tab !== "Synthesis";
               return (
                 <button
-                  key={tabRole}
+                  key={tab}
                   type="button"
                   disabled={isDisabled}
                   onClick={() => {
                     if (isDisabled) return;
-                    setSelectedTab(tabRole);
+                    setSelectedNavTab(tab);
                   }}
-                  className={`${styles.tabButton} ${selectedTab === tabRole ? styles.tabButtonActive : ""} ${isDisabled ? styles.tabButtonDisabled : ""}`}
+                  className={`${styles.tabButton} ${selectedNavTab === tab ? styles.tabButtonActive : ""} ${isDisabled ? styles.tabButtonDisabled : ""}`}
                 >
-                  {tabRole}
+                  {tab}
                 </button>
               );
             })}
           </div>
-          <div className={styles.tabToolbar}>
-            <div className={styles.searchToolbar}>
-              <input
-                type="search"
-                value={blockSearch}
-                onChange={(event) => setBlockSearch(event.target.value)}
-                placeholder="Search blocks"
-                className={styles.searchInput}
-                aria-label="Search blocks"
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                  }
-                }}
-              />
-              <button
-                type="button"
-                className={styles.searchButton}
-                onClick={() => setActiveSearch(blockSearch)}
-              >
-                Search
-              </button>
+          <div className={styles.navMeta}>
+            <div className={styles.navMetaItem}>
+              <span className={styles.navMetaLabel}>Project</span>
+              <span className={styles.navMetaValue}>Project AAA</span>
+            </div>
+            <div className={styles.navMetaItem}>
+              <span className={styles.navMetaLabel}>DF</span>
+              <span className={styles.navMetaValue}>v031</span>
+            </div>
+            <div className={styles.navMetaItem}>
+              <span className={styles.navMetaLabel}>Milestone</span>
+              <span className={styles.navMetaValue}>MS2</span>
+            </div>
+            <div className={styles.navMetaItem}>
+              <span className={styles.navMetaLabel}>Netlist</span>
+              <span className={styles.navMetaValue}>v031_net02</span>
             </div>
           </div>
+        </div>
+      </nav>
+
+      <main className={styles.mainContent}>
+        <div className={styles.tabContainer}>
+          {selectedLevel === "Project" && (
+            <div className={styles.tabToolbar}>
+              <div className={styles.searchToolbar}>
+                <input
+                  type="search"
+                  value={selectedTab === "PnR Engineer" && selectedNavTab === "Synthesis"
+                    ? pnrEngineerTab === "Result"
+                      ? pnrResultSearchInput
+                      : pnrMatrixSearchInput
+                    : designLeadSearchInput}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (selectedTab === "PnR Engineer" && selectedNavTab === "Synthesis") {
+                      if (pnrEngineerTab === "Result") {
+                        setPnrResultSearchInput(value);
+                        if (value === "") {
+                          setPnrResultSearchTerm("");
+                        }
+                      } else {
+                        setPnrMatrixSearchInput(value);
+                        if (value === "") {
+                          setPnrMatrixSearchTerm("");
+                        }
+                      }
+                    } else {
+                      setDesignLeadSearchInput(value);
+                      if (value === "") {
+                        setDesignLeadSearchTerm("");
+                      }
+                    }
+                  }}
+                  placeholder={selectedTab === "PnR Engineer" && selectedNavTab === "Synthesis"
+                    ? pnrEngineerTab === "Result"
+                      ? "Search PnR result"
+                      : "Search PnR matrix"
+                    : "Search blocks"}
+                  className={styles.searchInput}
+                  aria-label={selectedTab === "PnR Engineer" && selectedNavTab === "Synthesis"
+                    ? pnrEngineerTab === "Result"
+                      ? "Search PnR result"
+                      : "Search PnR matrix"
+                    : "Search blocks"}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      if (selectedTab === "PnR Engineer" && selectedNavTab === "Synthesis") {
+                        if (pnrEngineerTab === "Result") {
+                          setPnrResultSearchTerm(pnrResultSearchInput);
+                        } else {
+                          setPnrMatrixSearchTerm(pnrMatrixSearchInput);
+                        }
+                      } else {
+                        setDesignLeadSearchTerm(designLeadSearchInput);
+                      }
+                    }
+                    if (event.key === "Escape") {
+                      if (selectedTab === "PnR Engineer" && selectedNavTab === "Synthesis") {
+                        if (pnrEngineerTab === "Result") {
+                          setPnrResultSearchInput("");
+                          setPnrResultSearchTerm("");
+                        } else {
+                          setPnrMatrixSearchInput("");
+                          setPnrMatrixSearchTerm("");
+                        }
+                      } else {
+                        setDesignLeadSearchInput("");
+                        setDesignLeadSearchTerm("");
+                      }
+                    }
+                  }}
+                />
+                <button
+                  type="button"
+                  className={styles.searchButton}
+                  onClick={() => {
+                    if (selectedTab === "PnR Engineer" && selectedNavTab === "Synthesis") {
+                      if (pnrEngineerTab === "Result") {
+                        setPnrResultSearchTerm(pnrResultSearchInput);
+                      } else {
+                        setPnrMatrixSearchTerm(pnrMatrixSearchInput);
+                      }
+                    } else {
+                      setDesignLeadSearchTerm(designLeadSearchInput);
+                    }
+                  }}
+                >
+                  Search
+                </button>
+                
+              </div>
+            </div>
+          )}
         </div>
         
 
         <div className={styles.card}>
-         
+          
           <section className={styles.roleSection}>
             {selectedLevel === "Project" ? (
-              showProjectTable ? (
-                <div className={styles.tableContainer}>
-                  {isDesignLeadTab && designLeadData.metrics && (
-                    <div className={styles.metricsContainer}>
-                      {designLeadData.metrics.map((metric) => (
-                        <div key={metric.label} className={styles.metricCard} style={{ borderLeftColor: metric.color }}>
-                          <div className={styles.metricValue}>{metric.value}</div>
-                          <div className={styles.metricLabel}>{metric.label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  <table className={styles.blocksTable}>
-                    <thead>
-                      <tr className={styles.tableHeaderGroup}>
-                        <th colSpan={3} className={styles.headerGroupLabel}></th>
-                        <th colSpan={4} className={styles.headerGroupLabel} style={{ textAlign: "center", color: "#fff" }}>
-                          RISK ANALYSIS
-                        </th>
-                        <th colSpan={4} className={styles.headerGroupLabel} style={{ textAlign: "center", color: "#fff" }}>
-                          KEY METRICS
-                        </th>
-                        <th></th>
-                      </tr>
-                      <tr>
-                        <th>Block</th>
-                        <th>Exp</th>
-                        <th>Date</th>
-                        <th className={styles.riskColumn}>⚠ Risk</th>
-                        <th className={styles.colorCell}>🔴 Red</th>
-                        <th className={styles.colorCell}>🟡 Amber </th>
-                        <th className={styles.colorCell}>✓ Green</th>
-                        <th>WNS SIR</th>
-                        <th>GBC</th>
-                        <th>LVS</th>
-                        <th>PPA</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredBlocks.map((blockData) => (
-                        <tr key={blockData.block}>
-                          <td className={styles.blockName}>{blockData.block}</td>
-                          <td className={styles.normalCell}>{blockData.exp}</td>
-                          <td className={styles.normalCell}>{blockData.date}</td>
-                          <td className={styles.riskValueCell}>{blockData.risk}</td>
-                          <td className={`${styles.colorCell} ${blockData.red >= 8 ? styles.redCell : ''}`}>{blockData.red}</td>
-                          <td className={`${styles.colorCell} ${blockData.amber >= 5 ? styles.amberCell : ''}`}>{blockData.amber}</td>
-                          <td className={`${styles.colorCell} ${blockData.green >= 10 ? styles.greenCell : ''}`}>{blockData.green}</td>
-                          <td className={`${styles.colorCell} ${blockData.wns >= 500 ? styles.wnsCell : ''}`}>{blockData.wns}</td>
-                          <td className={`${styles.colorCell} ${blockData.gbc >= 700 ? styles.gbcCell : ''}`}>{blockData.gbc}</td>
-                          <td className={`${styles.colorCell} ${blockData.lvs >= 100 ? styles.lvsCell : ''}`}>{blockData.lvs}</td>
-                          <td className={`${styles.colorCell} ${blockData.ppa >= 1400 ? styles.ppaCell : ''}`}>{blockData.ppa}</td>
-                          <td>
-                            <button type="button" className={styles.viewRowButton}>
-                              View row →
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                      {filteredBlocks.length === 0 && (
-                        <tr>
-                          <td colSpan={12} className={styles.emptyState}>
-                            No blocks match your search.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <>
-                  <p className={styles.sectionLabel}>Quick stats</p>
-                  <div className={styles.statsGrid}>
-                    {roleData.stats.map((stat) => (
-                      <div key={stat.label} className={styles.statCard}>
-                        <div className={styles.statValue}>{stat.value}</div>
-                        <div className={styles.statLabel}>{stat.label}</div>
+              <>
+                {metrics && (
+                  <div className={styles.metricsContainer}>
+                    {metrics.map((metric) => (
+                      <div key={metric.label} className={styles.metricCard} style={{ borderLeftColor: metric.color }}>
+                        <div className={styles.metricValue}>{metric.value}</div>
+                        <div className={styles.metricLabel}>{metric.label}</div>
+                        {metric.description && <div className={styles.metricDescription}>{metric.description}</div>}
                       </div>
                     ))}
                   </div>
+                )}
 
-                  <div className={styles.highlights}>
-                    <h3 className={styles.sectionHeading}>Key actions</h3>
-                    <ul className={styles.highlightList}>
-                      {roleData.highlights.map((item) => (
-                        <li key={item} className={styles.highlightItem}>
-                          {item}
-                        </li>
+                {selectedTab === "PnR Engineer" && selectedNavTab === "Synthesis" ? (
+                  <>
+                    <div className={styles.pnrSynthesisTabs}>
+                      {(["Result", "Matrix"] as const).map((tab) => (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => setPnrEngineerTab(tab)}
+                          className={`${styles.pnrTabButton} ${pnrEngineerTab === tab ? styles.pnrTabButtonActive : ""}`}
+                        >
+                          {tab}
+                        </button>
                       ))}
-                    </ul>
+                    </div>
+                    <PnREngineerSynthesis
+                      activeTab={pnrEngineerTab}
+                      searchTerm={pnrEngineerTab === "Result" ? pnrResultSearchTerm : pnrMatrixSearchTerm}
+                    />
+                  </>
+                ) : showProjectTable ? (
+                  <div className={styles.tableContainer}>
+                    <div className={styles.tableWithPanel}>
+                      <table className={styles.blocksTable}>
+                        <thead>
+                          <tr className={styles.tableHeaderGroup}>
+                            <th colSpan={3} className={styles.headerGroupLabel}></th>
+                            {/* <th colSpan={4} className={styles.headerGroupLabel} style={{ textAlign: "center", color: "#fff" }}>
+                              RISK ANALYSIS
+                            </th> */}
+                            <th colSpan={4} className={styles.headerGroupLabel} style={{ textAlign: "center", color: "#fff" }}>
+                              KEY METRICS
+                            </th>
+                            <th></th>
+                          </tr>
+                          <tr>
+                            <th>Block</th>
+                            <th>Exp</th>
+                            <th>Date</th>
+                            {/* <th className={styles.riskColumn}>⚠ Risk</th>
+                            <th className={styles.colorCell}>🔴 Red</th>
+                            <th className={styles.colorCell}>🟡 Amber </th>
+                            <th className={styles.colorCell}>✓ Green</th> */}
+                            <th>WNS R2R</th>
+                            <th>DRC</th>
+                            <th>LVS</th>
+                            <th>PPA</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filteredBlocks.map((blockData) => (
+                            <tr key={blockData.block}>
+                              <td className={styles.blockName}>
+                                <a
+                                  href={`/block/${encodeURIComponent(blockData.block)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={styles.blockLink}
+                                  aria-label={`Open details for block ${formatBlockName(blockData.block)} in a new tab`}
+                                >
+                                  {formatBlockName(blockData.block)}
+                                </a>
+                              </td>
+                              <td className={styles.normalCell}>{blockData.exp}</td>
+                              <td className={styles.normalCell}>{blockData.date}</td>
+                              {/* <td className={styles.riskValueCell}>{blockData.risk}</td>
+                              <td className={`${styles.colorCell} ${blockData.red >= 8 ? styles.redCell : ''}`}>{blockData.red}</td>
+                              <td className={`${styles.colorCell} ${blockData.amber >= 5 ? styles.amberCell : ''}`}>{blockData.amber}</td>
+                              <td className={`${styles.colorCell} ${blockData.green >= 10 ? styles.greenCell : ''}`}>{blockData.green}</td> */}
+                              <td
+                                className={`${styles.colorCell} ${blockData.wns >= 500 ? styles.wnsCell : ''} ${styles.clickableCell}`}
+                                onClick={() => handleCellClick(blockData, "WNS R2R", blockData.wns)}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                {blockData.wns}
+                              </td>
+                              <td
+                                className={`${styles.colorCell} ${blockData.drc >= 700 ? styles.drcCell : ''} ${styles.clickableCell}`}
+                                onClick={() => handleCellClick(blockData, "DRC", blockData.drc)}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                {blockData.drc}
+                              </td>
+                              <td
+                                className={`${styles.colorCell} ${blockData.lvs >= 100 ? styles.lvsCell : ''} ${styles.clickableCell}`}
+                                onClick={() => handleCellClick(blockData, "LVS", blockData.lvs)}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                {blockData.lvs}
+                              </td>
+                              <td
+                                className={`${styles.colorCell} ${blockData.ppa >= 1400 ? styles.ppaCell : ''} ${styles.clickableCell}`}
+                                onClick={() => handleCellClick(blockData, "PPA", blockData.ppa)}
+                                role="button"
+                                tabIndex={0}
+                              >
+                                {blockData.ppa}
+                              </td>
+                              <td>
+                                <button type="button" className={styles.viewRowButton}>
+                                  View row →
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          {filteredBlocks.length === 0 && (
+                              <tr>
+                                <td colSpan={12} className={styles.emptyState}>
+                                  <EmptyState message="No blocks match your search." />
+                                </td>
+                              </tr>
+                            )}
+                        </tbody>
+                      </table>
+
+                      {selectedCellInfo && (
+                        <aside className={`${styles.detailPanel} ${isPanelExpanded ? styles.detailPanelExpanded : ""}`}>
+                          <div className={styles.detailPanelHeader}>
+                            <div>
+                              <p className={styles.detailPanelTitle}>Cell detail</p>
+                              <p className={styles.detailPanelSubtitle}>{`${selectedCellInfo.block} / ${selectedCellInfo.exp}`}</p>
+                            </div>
+                            <div className={styles.detailPanelActions}>
+                              <button
+                                type="button"
+                                className={styles.detailExpandButton}
+                                onClick={handlePanelToggle}
+                                aria-label={isPanelExpanded ? "Collapse panel" : "Expand panel"}
+                              >
+                                {isPanelExpanded ? "↙" : "⤢"}
+                              </button>
+                              <button type="button" className={styles.detailCloseButton} onClick={closeDetailPanel} aria-label="Close details panel">
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                          <div className={styles.detailPanelBody}>
+                            <div className={styles.detailCellHeadline}>{`${selectedCellInfo.column} = ${selectedCellInfo.value}`}</div>
+                            <div className={styles.detailFilePath}>{selectedCellInfo.filePath}</div>
+                            <div className={styles.detailStatsList}>
+                              {selectedCellInfo.details.map((detail) => (
+                                <div key={detail.label} className={styles.detailStatRow}>
+                                  <span className={styles.detailStatLabel}>{detail.label}</span>
+                                  <span className={styles.detailStatValue}>{detail.value}</span>
+                                </div>
+                              ))}
+                            </div>
+                            {isPanelExpanded && (
+                              <div className={styles.detailExpandedContent}>
+                                <div className={styles.detailExpandedRow}>
+                                  <span className={styles.detailExpandedLabel}>Block date</span>
+                                  <span>{selectedCellInfo.date}</span>
+                                </div>
+                                <div className={styles.detailExpandedRow}>
+                                  <span className={styles.detailExpandedLabel}>Report type</span>
+                                  <span>{selectedCellInfo.column}</span>
+                                </div>
+                                <div className={styles.detailExpandedRow}>
+                                  <span className={styles.detailExpandedLabel}>Suggested action</span>
+                                  <span>Review the report details and confirm the closure path for this metric.</span>
+                                </div>
+                                <div className={styles.detailExpandedRow}>
+                                  <span className={styles.detailExpandedLabel}>Detail notes</span>
+                                  <span>Compare this value against the current timing and signoff status.</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </aside>
+                      )}
+                    </div>
                   </div>
-                </>
-              )
+                ) : (
+                  <>
+                    <p className={styles.sectionLabel}>Quick stats</p>
+                    <div className={styles.statsGrid}>
+                      {roleData.stats.map((stat) => (
+                        <div key={stat.label} className={styles.statCard}>
+                          <div className={styles.statValue}>{stat.value}</div>
+                          <div className={styles.statLabel}>{stat.label}</div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className={styles.highlights}>
+                      <h3 className={styles.sectionHeading}>Key actions</h3>
+                      <ul className={styles.highlightList}>
+                        {roleData.highlights.map((item) => (
+                          <li key={item} className={styles.highlightItem}>
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </>
+                )}
+              </>
             ) : selectedLevel === "Block level" && isDesignLeadTab ? (
               <div className={styles.blockGrid}>
-                {designLeadData.blocks.map((b) => {
+                {(designLeadData.blocks ?? []).map((b) => {
                   const total = b.red + b.amber + b.green || 1;
                   const redPct = Math.round((b.red / total) * 100);
                   const amberPct = Math.round((b.amber / total) * 100);
@@ -517,7 +858,7 @@ function DashboardContent() {
                     <div key={b.block} className={`${styles.blockCard} ${statusClass}`}>
                       <div className={styles.blockCardHeader}>
                         <div className={styles.blockTitle}>{b.block.toUpperCase()}</div>
-                        <div className={styles.blockTag}>{tag}</div>
+                        <div className={`${styles.blockTag} ${tag === "AT RISK" ? styles.blockTagRisk : tag === "ATTENTION" ? styles.blockTagAttention : styles.blockTagOk}`}>{tag}</div>
                       </div>
                       <div className={styles.blockMeta}>{b.exp} · {b.date}</div>
 
@@ -529,7 +870,7 @@ function DashboardContent() {
 
                       <div className={styles.smallStatsRow}>
                         <div className={styles.smallStat}><div className={styles.smallStatValue}>{b.wns}</div><div className={styles.smallStatLabel}>WNS</div></div>
-                        <div className={styles.smallStat}><div className={styles.smallStatValue}>{b.gbc}</div><div className={styles.smallStatLabel}>GBC</div></div>
+                        <div className={styles.smallStat}><div className={styles.smallStatValue}>{b.drc}</div><div className={styles.smallStatLabel}>DRC</div></div>
                         <div className={styles.smallStat}><div className={styles.smallStatValue}>{b.lvs}</div><div className={styles.smallStatLabel}>LVS</div></div>
                       </div>
 
@@ -580,7 +921,7 @@ function DashboardContent() {
                       ))}
                       <div className={styles.heatmapLabel}>BLOCK HEATMAP (FIRST METRIC)</div>
                       <div className={styles.heatmapList}>
-                        {designLeadData.blocks.map((blockData) => (
+                        {(designLeadData.blocks ?? []).map((blockData) => (
                           <span key={blockData.block} className={styles.heatmapPill}>{blockData.block}</span>
                         ))}
                       </div>
@@ -615,7 +956,7 @@ function getInitials(input: string) {
 
 export default function DashboardPage() {
   return (
-    <Suspense fallback={<div className={styles.dashboardPage} />}>
+    <Suspense fallback={<div className={styles.dashboardPage}><Loading /></div>}>
       <DashboardContent />
     </Suspense>
   );
