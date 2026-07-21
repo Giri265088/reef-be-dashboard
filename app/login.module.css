@@ -1,0 +1,234 @@
+.pageWrapper {
+  min-height: 100vh;
+  background: #2a289d;
+  padding: 2.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loginCard {
+  position: relative;
+  width: min(100%, 420px);
+  overflow: hidden;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  box-shadow: 0 35px 80px rgba(45, 16, 55, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(14px);
+}
+
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.55), transparent 35%),
+    radial-gradient(circle at bottom right, rgba(42, 40, 157, 0.14), transparent 35%);
+}
+
+.cardInner {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.headerBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  text-align: center;
+}
+
+.logoBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 24px;
+  background: #2a289d;
+  color: #ffffff;
+  box-shadow: 0 15px 35px rgba(42, 40, 157, 0.2);
+}
+
+.title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: #2a289d;
+  margin: 0;
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.32em;
+  color: #94a3b8;
+}
+
+.pageHeading {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.headingPrimary {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #2a289d;
+  margin: 0;
+}
+
+.headingText {
+  color: #64748b;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* .fieldGroup {} */
+
+.label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #64748b;
+}
+
+.inputField {
+  width: 100%;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #0f172a;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.inputField:focus {
+  border-color: #2a289d;
+  box-shadow: 0 0 0 4px rgba(42, 40, 157, 0.12);
+}
+
+.roleLabel {
+  margin-bottom: 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #64748b;
+}
+
+.roleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.roleButton {
+  border-radius: 24px;
+  padding: 1rem;
+  text-align: left;
+  transition: border 0.2s, background 0.2s, box-shadow 0.2s;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.roleButton:hover {
+  border-color: rgba(42, 40, 157, 0.4);
+}
+
+.roleButtonActive {
+  border: 2px solid #2a289d;
+  background: #f2f2ff;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+}
+
+.roleButtonDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: rgba(226, 232, 240, 0.8);
+  background: #f3f4f6;
+}
+
+.roleIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #2a289d;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.06);
+}
+
+.roleTitle {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.roleDescription {
+  margin-top: 0.25rem;
+  font-size: 0.6875rem;
+  color: #64748b;
+}
+
+.roleEmail {
+  margin-top: 0.5rem;
+  font-size: 0.6875rem;
+  color: #64748b;
+}
+
+.submitButton {
+  width: 100%;
+  border-radius: 24px;
+  background: #2a289d;
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #ffffff;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.submitButton:hover {
+  background: #2a289d;
+}
+
+.errorMessage {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding-top: 0.5rem;
+}
+
+.footerText {
+  text-align: center;
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: #94a3b8;
+}
